@@ -46,7 +46,7 @@ async def play(ctx):
 
 @bot.command()
 async def thx(ctx):
-    await ctx.send("AIM: Спасибо за поддержку! Всегда рад помочь!!!")
+    await ctx.send("Спасибо за поддержку!!!")
 
 bot.run('bottoken')
         
