@@ -7,6 +7,8 @@ intents = nextcord.Intents.all()
 intents.voice_states = True
 intents.guilds = True
 intents.messages = True
+intents.presences = True
+intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 default_youtube_stream_url = "https://www.youtube.com/watch?v=rUxyKA_-grg&ab_channel=LofiGirl"
@@ -21,6 +23,8 @@ async def delete_message_after_delay(message, delay=30):
 @bot.event
 async def on_ready():
     print('AIM: Привет, Никколо! Готов выполнить любую твою команду.')
+
+# Обработчики команд
 
 @bot.command()
 async def join(ctx):
@@ -176,4 +180,45 @@ async def on_error(event, *args, **kwargs):
         if isinstance(channel, nextcord.TextChannel):
             await channel.send(error_message)
 
+# Логирование событий сервера
+
+@bot.event
+async def on_member_join(member):
+    log_channel = nextcord.utils.get(member.guild.text_channels, name='bot')  # Замените 'логирование' на имя вашего канала
+    if log_channel:
+        await log_channel.send(f"AIM: {member.name} присоединился к серверу.")
+
+@bot.event
+async def on_member_remove(member):
+    log_channel = nextcord.utils.get(member.guild.text_channels, name='bot')  # Замените 'логирование' на имя вашего канала
+    if log_channel:
+        await log_channel.send(f"AIM: {member.name} покинул сервер.")
+
+@bot.event
+async def on_member_update(before, after):
+    log_channel = nextcord.utils.get(before.guild.text_channels, name='bot')  # Замените 'логирование' на имя вашего канала
+    if log_channel:
+        if before.nick != after.nick:
+            await log_channel.send(f"AIM: {before.name} изменил ник на {after.nick}.")
+        if before.roles != after.roles:
+            added_roles = [role for role in after.roles if role not in before.roles]
+            removed_roles = [role for role in before.roles if role not in after.roles]
+            if added_roles:
+                await log_channel.send(f"AIM: {after.name} получил роли: {', '.join(role.name for role in added_roles)}.")
+            if removed_roles:
+                await log_channel.send(f"AIM: {after.name} потерял роли: {', '.join(role.name for role in removed_roles)}.")
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    log_channel = nextcord.utils.get(member.guild.text_channels, name='bot')  # Замените 'логирование' на имя вашего канала
+    if log_channel:
+        if before.channel is None and after.channel is not None:
+            await log_channel.send(f"AIM: {member.name} присоединился к голосовому каналу {after.channel.name}.")
+        elif before.channel is not None and after.channel is None:
+            await log_channel.send(f"AIM: {member.name} покинул голосовой канал {before.channel.name}.")
+        elif before.channel != after.channel:
+            await log_channel.send(f"AIM: {member.name} переместился из голосового канала {before.channel.name} в голосовой канал {after.channel.name}.")
+
 bot.run('YOUR_BOT_TOKEN')  # Замените YOUR_BOT_TOKEN на токен вашего бота
+
+
