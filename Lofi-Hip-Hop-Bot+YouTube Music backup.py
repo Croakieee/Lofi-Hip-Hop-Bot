@@ -176,4 +176,4 @@ async def on_error(event, *args, **kwargs):
         if isinstance(channel, nextcord.TextChannel):
             await channel.send(error_message)
 
-bot.run('bot-api')
+bot.run('YOUR_BOT_TOKEN')  # Замените YOUR_BOT_TOKEN на токен вашего бота
