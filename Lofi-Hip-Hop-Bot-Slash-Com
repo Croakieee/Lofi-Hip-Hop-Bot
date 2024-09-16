@@ -1,0 +1,158 @@
+import nextcord
+import yt_dlp
+from nextcord import Interaction
+from nextcord.ext import commands
+
+intents = nextcord.Intents.all()
+intents.voice_states = True
+intents.guilds = True
+intents.messages = True
+intents.presences = True
+intents.members = True
+
+bot = commands.Bot(intents=intents)
+
+default_youtube_stream_url = "https://www.youtube.com/watch?v=rUxyKA_-grg&ab_channel=LofiGirl"
+
+async def log_event(message):
+    log_channel_name = "bot-🔬"
+    guild = bot.get_guild(1284971289261379664)  # Замените на ID вашего сервера
+    if guild:
+        log_channel = nextcord.utils.get(guild.text_channels, name=log_channel_name)
+        if log_channel:
+            await log_channel.send(message)
+        else:
+            print(f"Не удалось найти канал с названием {log_channel_name}.")
+    else:
+        print("Не удалось найти сервер.")
+
+@bot.event
+async def on_ready():
+    print('AIM: Привет, Никколо! Готов выполнить любую твою команду.')
+    await log_event("Бот подключён и готов к работе.")
+
+@bot.slash_command(name="join", description="Подключить бота к голосовому каналу")
+async def join(interaction: Interaction):
+    channel = interaction.user.voice.channel
+    if not interaction.guild.voice_client:
+        await channel.connect()
+        await interaction.response.send_message("AIM: Подключился к голосовому каналу.", ephemeral=True)
+        await log_event(f"Бот подключился к голосовому каналу {channel}.")
+    else:
+        await interaction.response.send_message("AIM: Я уже подключён к голосовому каналу.", ephemeral=True)
+
+@bot.slash_command(name="play_radio", description="Начать воспроизведение радио")
+async def play_radio(interaction: Interaction):
+    voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
+
+    if not voice_channel:
+        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу. Используйте /join, чтобы подключиться.", ephemeral=True)
+        return
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'extractaudio': True,
+        'audioformat': 'mp3',
+        'noplaylist': True,
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(default_youtube_stream_url, download=False)
+            if 'formats' in info:
+                audio_url = next((f['url'] for f in info['formats'] if f.get('acodec') != 'none'), None)
+                if not audio_url:
+                    audio_url = info['formats'][0]['url']
+            else:
+                audio_url = info['url']
+            voice_channel.stop()
+            voice_channel.play(nextcord.FFmpegPCMAudio(audio_url))
+        await interaction.response.send_message("AIM: Воспроизведение радио началось.", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"AIM: Возникла ошибка при воспроизведении радио - {str(e)}", ephemeral=True)
+
+@bot.slash_command(name="play_other", description="Начать воспроизведение по предоставленной YouTube ссылке")
+async def play_other(interaction: Interaction, url: str):
+    voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
+
+    if not voice_channel:
+        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу. Используйте /join, чтобы подключиться.", ephemeral=True)
+        return
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'extractaudio': True,
+        'audioformat': 'mp3',
+        'noplaylist': True,
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            if 'formats' in info:
+                audio_url = next((f['url'] for f in info['formats'] if f.get('acodec') != 'none'), None)
+                if not audio_url:
+                    audio_url = info['formats'][0]['url']
+            else:
+                audio_url = info['url']
+            voice_channel.stop()
+            voice_channel.play(nextcord.FFmpegPCMAudio(audio_url))
+        await interaction.response.send_message("AIM: Воспроизведение видео началось.", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"AIM: Возникла ошибка при воспроизведении - {str(e)}", ephemeral=True)
+
+@bot.slash_command(name="stop", description="Остановить воспроизведение")
+async def stop(interaction: Interaction):
+    voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
+
+    if not voice_channel:
+        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу.", ephemeral=True)
+        return
+
+    if not voice_channel.is_playing():
+        await interaction.response.send_message("AIM: В данный момент ничего не воспроизводится.", ephemeral=True)
+        return
+
+    voice_channel.stop()
+    await interaction.response.send_message("AIM: Воспроизведение остановлено.", ephemeral=True)
+
+@bot.slash_command(name="thx", description="Сообщение благодарности")
+async def thx(interaction: Interaction):
+    await interaction.response.send_message("Спасибо за поддержку!!!", ephemeral=True)
+
+@bot.slash_command(name="h", description="Показать список команд")
+async def h(interaction: Interaction):
+    help_message = """
+    **AIM: Список доступных команд и инструкция**
+    
+    **/join** — подключает бота к голосовому каналу, в котором находится пользователь.
+    Пример: `/join`
+
+    **/play_radio** — начинает воспроизведение заранее заданного радио.
+    Пример: `/play_radio`
+
+    **/play_other <ссылка>** — начинает воспроизведение по предоставленной YouTube ссылке.
+    Пример: `/play_other https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+
+    **/stop** — останавливает текущее воспроизведение.
+    Пример: `/stop`
+
+    **/thx** — благодарность от бота. Показывает сообщение благодарности в чате.
+    Пример: `/thx`
+
+    **/h** — показывает это сообщение с инструкциями.
+    Пример: `/h`
+    """
+    await interaction.response.send_message(help_message, ephemeral=True)
+
+@bot.slash_command(name="del_messages", description="Удалить сообщения")
+async def del_messages(interaction: Interaction, amount: int):
+    if amount < 1 or amount > 100:
+        await interaction.response.send_message("AIM: Укажите количество сообщений от 1 до 100.", ephemeral=True)
+        return
+
+    await interaction.channel.purge(limit=amount)
+    await interaction.response.send_message(f"AIM: Удалено {amount} сообщений.", ephemeral=True)
+
+# Запуск бота
+bot.run('YOUR_BOT_TOKEN')
