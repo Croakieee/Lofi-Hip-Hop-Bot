@@ -70,7 +70,6 @@ async def on_member_remove(member):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    # Логирование подключения и отключения от голосового канала
     if before.channel is None and after.channel is not None:
         message = f"Пользователь {member} присоединился к голосовому каналу {after.channel}."
         await log_event(message)
@@ -81,7 +80,6 @@ async def on_voice_state_update(member, before, after):
         message = f"Пользователь {member} переместился из канала {before.channel} в канал {after.channel}."
         await log_event(message)
 
-    # Логирование включения и отключения микрофона
     if before.self_mute != after.self_mute:
         if after.self_mute:
             message = f"Пользователь {member} выключил микрофон в канале {after.channel}."
@@ -89,7 +87,6 @@ async def on_voice_state_update(member, before, after):
             message = f"Пользователь {member} включил микрофон в канале {after.channel}."
         await log_event(message)
 
-    # Логирование включения и отключения звука
     if before.self_deaf != after.self_deaf:
         if after.self_deaf:
             message = f"Пользователь {member} выключил звук в канале {after.channel}."
@@ -97,7 +94,6 @@ async def on_voice_state_update(member, before, after):
             message = f"Пользователь {member} включил звук в канале {after.channel}."
         await log_event(message)
 
-    # Логирование серверного отключения/включения микрофона
     if before.mute != after.mute:
         if after.mute:
             message = f"Пользователь {member} был отключён на сервере в канале {after.channel}."
@@ -105,13 +101,50 @@ async def on_voice_state_update(member, before, after):
             message = f"Пользователь {member} был включён на сервере в канале {after.channel}."
         await log_event(message)
 
-    # Логирование серверного отключения/включения звука
     if before.deaf != after.deaf:
         if after.deaf:
             message = f"Пользователь {member} был отключён на сервере (глухой) в канале {after.channel}."
         else:
             message = f"Пользователь {member} был включён на сервере (не глухой) в канале {after.channel}."
         await log_event(message)
+
+@bot.event
+async def on_member_ban(guild, user):
+    message = f"Пользователь {user} был забанен на сервере {guild}."
+    await log_event(message)
+
+@bot.event
+async def on_member_unban(guild, user):
+    message = f"Пользователь {user} был разбанен на сервере {guild}."
+    await log_event(message)
+
+@bot.event
+async def on_message_delete(message):
+    if message.author.bot:
+        return
+    message_info = f"Сообщение от {message.author} в канале {message.channel} было удалено: {message.content}"
+    await log_event(message_info)
+
+@bot.event
+async def on_message_edit(before, after):
+    if before.author.bot:
+        return
+    message_info = f"Сообщение от {before.author} в канале {before.channel} было отредактировано:\nДо: {before.content}\nПосле: {after.content}"
+    await log_event(message_info)
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
+    message_info = f"Пользователь {user} добавил реакцию {reaction.emoji} к сообщению в канале {reaction.message.channel}."
+    await log_event(message_info)
+
+@bot.event
+async def on_reaction_remove(reaction, user):
+    if user.bot:
+        return
+    message_info = f"Пользователь {user} удалил реакцию {reaction.emoji} с сообщения в канале {reaction.message.channel}."
+    await log_event(message_info)
 
 @bot.slash_command(name="join", description="Подключить бота к голосовому каналу")
 async def join(interaction: nextcord.Interaction):
@@ -185,7 +218,7 @@ async def play_other(interaction: nextcord.Interaction, url: str):
     except Exception as e:
         await interaction.response.send_message(f"AIM: Возникла ошибка при воспроизведении - {str(e)}", ephemeral=True)
 
-@bot.slash_command(name="stop", description="Остановить воспроизведение")
+@bot.slash_command(name="stop", description="Остановить текущее воспроизведение")
 async def stop(interaction: nextcord.Interaction):
     voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
 
