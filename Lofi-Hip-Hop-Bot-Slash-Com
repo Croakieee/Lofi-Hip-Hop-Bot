@@ -361,4 +361,4 @@ async def h(interaction: nextcord.Interaction):
     """
     await interaction.response.send_message(help_message, ephemeral=True)
 
-bot.run('YOUR_BOT_TOKEN')
+bot.run('YOUR_BOT_TOKEN') # for Mute u need *Muted* role
