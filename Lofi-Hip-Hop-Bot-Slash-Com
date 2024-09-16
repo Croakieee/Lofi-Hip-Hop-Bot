@@ -70,6 +70,7 @@ async def on_member_remove(member):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
+    # Логирование подключения и отключения от голосового канала
     if before.channel is None and after.channel is not None:
         message = f"Пользователь {member} присоединился к голосовому каналу {after.channel}."
         await log_event(message)
@@ -78,6 +79,38 @@ async def on_voice_state_update(member, before, after):
         await log_event(message)
     elif before.channel is not None and after.channel is not None and before.channel != after.channel:
         message = f"Пользователь {member} переместился из канала {before.channel} в канал {after.channel}."
+        await log_event(message)
+
+    # Логирование включения и отключения микрофона
+    if before.self_mute != after.self_mute:
+        if after.self_mute:
+            message = f"Пользователь {member} выключил микрофон в канале {after.channel}."
+        else:
+            message = f"Пользователь {member} включил микрофон в канале {after.channel}."
+        await log_event(message)
+
+    # Логирование включения и отключения звука
+    if before.self_deaf != after.self_deaf:
+        if after.self_deaf:
+            message = f"Пользователь {member} выключил звук в канале {after.channel}."
+        else:
+            message = f"Пользователь {member} включил звук в канале {after.channel}."
+        await log_event(message)
+
+    # Логирование серверного отключения/включения микрофона
+    if before.mute != after.mute:
+        if after.mute:
+            message = f"Пользователь {member} был отключён на сервере в канале {after.channel}."
+        else:
+            message = f"Пользователь {member} был включён на сервере в канале {after.channel}."
+        await log_event(message)
+
+    # Логирование серверного отключения/включения звука
+    if before.deaf != after.deaf:
+        if after.deaf:
+            message = f"Пользователь {member} был отключён на сервере (глухой) в канале {after.channel}."
+        else:
+            message = f"Пользователь {member} был включён на сервере (не глухой) в канале {after.channel}."
         await log_event(message)
 
 @bot.slash_command(name="join", description="Подключить бота к голосовому каналу")
@@ -166,39 +199,53 @@ async def stop(interaction: nextcord.Interaction):
 
     voice_channel.stop()
     await interaction.response.send_message("AIM: Воспроизведение остановлено.", ephemeral=True)
+    await log_event("Воспроизведение было остановлено.")
 
-@bot.slash_command(name="thx", description="Сообщение благодарности")
+@bot.slash_command(name="leave", description="Отключить бота от голосового канала")
+async def leave(interaction: nextcord.Interaction):
+    voice_client = interaction.guild.voice_client
+    if voice_client is not None:
+        await voice_client.disconnect()
+        await interaction.response.send_message("AIM: Отключился от голосового канала.", ephemeral=True)
+        await log_event(f"Бот отключился от голосового канала {voice_client.channel}.")
+    else:
+        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу.", ephemeral=True)
+
+@bot.slash_command(name="thx", description="Сказать спасибо боту")
 async def thx(interaction: nextcord.Interaction):
-    await interaction.response.send_message("Спасибо за поддержку!!!", ephemeral=True)
+    await interaction.response.send_message("AIM: Рад был помочь! :)", ephemeral=True)
 
-@bot.slash_command(name="del_messages", description="Удалить сообщения")
-@commands.has_permissions(manage_messages=True)
+@bot.slash_command(name="del_messages", description="Удалить последние сообщения")
 async def del_messages(interaction: nextcord.Interaction, amount: int):
     if amount < 1 or amount > 100:
-        await interaction.response.send_message("AIM: Введите количество сообщений от 1 до 100.", ephemeral=True)
+        await interaction.response.send_message("AIM: Укажите количество сообщений от 1 до 100.", ephemeral=True)
         return
 
-    deleted = await interaction.channel.purge(limit=amount)
-    await interaction.response.send_message(f"AIM: Удалено {len(deleted)} сообщений.", ephemeral=True)
+    await interaction.channel.purge(limit=amount)
+    await interaction.response.send_message(f"AIM: Удалил {amount} сообщений.", ephemeral=True)
+    await log_event(f"Удалено {amount} сообщений пользователем {interaction.user}.")
 
-@bot.slash_command(name="h", description="Показать список команд")
+@bot.slash_command(name="h", description="Показать доступные команды")
 async def h(interaction: nextcord.Interaction):
     help_message = """
-    **AIM: Список доступных команд и инструкция**
-    
-    **/join** — подключает бота к голосовому каналу, в котором находится пользователь.
+    **Доступные команды:**
+
+    **/join** — подключить бота к голосовому каналу.
     Пример: /join
 
-    **/play_radio** — начинает воспроизведение заранее заданного радио.
+    **/leave** — отключить бота от голосового канала.
+    Пример: /leave
+
+    **/play_radio** — начать воспроизведение радио.
     Пример: /play_radio
 
-    **/play_other <ссылка>** — начинает воспроизведение по предоставленной YouTube ссылке.
-    Пример: /play_other https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    **/play_other <ссылка>** — начать воспроизведение YouTube видео по ссылке.
+    Пример: /play_other https://www.youtube.com/...
 
-    **/stop** — останавливает текущее воспроизведение.
+    **/stop** — остановить текущее воспроизведение.
     Пример: /stop
 
-    **/thx** — благодарность от бота. Показывает сообщение благодарности в чате.
+    **/thx** — сказать спасибо боту.
     Пример: /thx
 
     **/del_messages <количество>** — удаляет заданное количество сообщений (от 1 до 100).
