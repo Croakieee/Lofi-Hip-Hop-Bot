@@ -17,6 +17,7 @@ default_youtube_stream_url = "https://www.youtube.com/watch?v=rUxyKA_-grg&ab_cha
 last_message_time = {}
 spam_warning_sent = set()
 user_warnings = {}
+user_roles = {}  # Словарь для хранения ролей пользователя перед мутом
 
 async def delete_message_after_delay(message, delay=30):
     await asyncio.sleep(delay)
@@ -183,21 +184,36 @@ async def on_message(message):
                             except Exception as e:
                                 print(f"Ошибка создания роли: {str(e)}")
                         if muted_role:
-                            await member.add_roles(muted_role)
-                            await message.channel.send(f"{message.author.mention}, вы были замучены на 5 минут за спам.")
-                            await asyncio.sleep(300)  # Мут на 5 минут
-                            await member.remove_roles(muted_role)
-                            await message.channel.send(f"{message.author.mention}, ваш мут завершён.")
-                        user_warnings[user_id] = 0  # Сброс предупреждений после мута
+                            # Сохраняем текущие роли пользователя
+                            user_roles[user_id] = [role.id for role in member.roles if role.name != role_name]
+                            # Удаляем все роли кроме "Muted"
+                            try:
+                                await member.edit(roles=[muted_role])
+                                await message.channel.send(f"{message.author.mention}, вы были замучены за спам!")
+                            except Exception as e:
+                                await message.channel.send(f"Не удалось применить мут: {str(e)}")
+                    else:
+                        await message.channel.send(f"Не удалось найти пользователя {message.author.mention}.")
             else:
-                # Обновляем время последнего сообщения
-                last_message_time[user_id] = current_time
+                user_warnings[user_id] = user_warnings.get(user_id, 0) + 1
+                if user_warnings[user_id] >= 3:
+                    member = message.guild.get_member(user_id)
+                    if member:
+                        role_name = "Muted"
+                        muted_role = nextcord.utils.get(message.guild.roles, name=role_name)
+                        if muted_role:
+                            try:
+                                await member.edit(roles=[muted_role])
+                                await message.channel.send(f"{message.author.mention}, вы были замучены за спам!")
+                            except Exception as e:
+                                await message.channel.send(f"Не удалось применить мут: {str(e)}")
+                    else:
+                        await message.channel.send(f"Не удалось найти пользователя {message.author.mention}.")
         else:
-            # Обновляем время последнего сообщения
+            # Сброс времени последнего сообщения пользователя
             last_message_time[user_id] = current_time
-            if user_id in spam_warning_sent:
-                spam_warning_sent.remove(user_id)
-                user_warnings[user_id] = user_warnings.get(user_id, 0) - 1
+            spam_warning_sent.discard(user_id)
+            user_warnings[user_id] = 0
     else:
         # Устанавливаем время первого сообщения пользователя
         last_message_time[user_id] = current_time
@@ -345,4 +361,4 @@ async def h(interaction: nextcord.Interaction):
     """
     await interaction.response.send_message(help_message, ephemeral=True)
 
-bot.run('bot_api')
+bot.run('YOUR_BOT_TOKEN')
