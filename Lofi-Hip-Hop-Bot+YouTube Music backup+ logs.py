@@ -66,6 +66,36 @@ async def on_voice_state_update(member, before, after):
         message = f"Пользователь {member} переместился из канала {before.channel} в канал {after.channel}."
         await log_event(message)
 
+    # Логирование включения/выключения микрофона
+    if before.mute != after.mute:
+        if after.mute:
+            message = f"Пользователь {member} включил микрофон."
+        else:
+            message = f"Пользователь {member} выключил микрофон."
+        await log_event(message)
+
+    # Логирование включения/выключения камеры
+    if before.deaf != after.deaf:
+        if after.deaf:
+            message = f"Пользователь {member} включил демонстрацию экрана."
+        else:
+            message = f"Пользователь {member} выключил демонстрацию экрана."
+        await log_event(message)
+
+    if before.self_deaf != after.self_deaf:
+        if after.self_deaf:
+            message = f"Пользователь {member} включил собственное отключение звука."
+        else:
+            message = f"Пользователь {member} выключил собственное отключение звука."
+        await log_event(message)
+
+    if before.self_mute != after.self_mute:
+        if after.self_mute:
+            message = f"Пользователь {member} включил собственное отключение микрофона."
+        else:
+            message = f"Пользователь {member} выключил собственное отключение микрофона."
+        await log_event(message)
+
 @bot.command()
 async def join(ctx):
     await ctx.message.delete()
