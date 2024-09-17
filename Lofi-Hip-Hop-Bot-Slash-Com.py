@@ -27,7 +27,7 @@ async def delete_message_after_delay(message, delay=30):
 
 async def log_event(message):
     log_channel_name = "логи-🌐"  # Название канала для логов
-    guild = bot.get_guild(1284971289261379664)  # Замените на ID вашего сервера
+    guild = bot.get_guild(id)  # Замените на ID вашего сервера
     if guild:
         log_channel = nextcord.utils.get(guild.text_channels, name=log_channel_name)
         if log_channel:
@@ -39,7 +39,7 @@ async def log_event(message):
 
 @bot.event
 async def on_ready():
-    print('AIM: Привет, Никколо! Готов выполнить любую твою команду.')
+    print('MBot: Привет! Готов выполнить любую твою команду.')
     await log_event("Бот подключён и готов к работе.")
 
 @bot.event
@@ -210,17 +210,17 @@ async def join(interaction: nextcord.Interaction):
     channel = interaction.user.voice.channel
     if not interaction.guild.voice_client:
         await channel.connect()
-        await interaction.response.send_message("AIM: Подключился к голосовому каналу.", ephemeral=True)
+        await interaction.response.send_message("MBot: Подключился к голосовому каналу.", ephemeral=True)
         await log_event(f"Бот подключился к голосовому каналу {channel}.")
     else:
-        await interaction.response.send_message("AIM: Я уже подключён к голосовому каналу.", ephemeral=True)
+        await interaction.response.send_message("Mbot: Я уже подключён к голосовому каналу.", ephemeral=True)
 
 @bot.slash_command(name="play_radio", description="Начать воспроизведение радио")
 async def play_radio(interaction: nextcord.Interaction):
     voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
 
     if not voice_channel:
-        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу. Используйте /join, чтобы подключиться.", ephemeral=True)
+        await interaction.response.send_message("MBot: Я не подключён к голосовому каналу. Используйте /join, чтобы подключиться.", ephemeral=True)
         return
 
     ydl_opts = {
@@ -242,16 +242,16 @@ async def play_radio(interaction: nextcord.Interaction):
                 audio_url = info['url']
             voice_channel.stop()
             voice_channel.play(nextcord.FFmpegPCMAudio(audio_url), after=lambda e: print('Done', e))
-        await interaction.response.send_message("AIM: Воспроизведение радио началось.", ephemeral=True)
+        await interaction.response.send_message("MBot: Воспроизведение радио началось.", ephemeral=True)
     except Exception as e:
-        await interaction.response.send_message(f"AIM: Возникла ошибка при воспроизведении радио - {str(e)}", ephemeral=True)
+        await interaction.response.send_message(f"MBot: Возникла ошибка при воспроизведении радио - {str(e)}", ephemeral=True)
 
 @bot.slash_command(name="play_other", description="Начать воспроизведение по ссылке")
 async def play_other(interaction: nextcord.Interaction, url: str):
     voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
 
     if not voice_channel:
-        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу. Используйте /join, чтобы подключиться.", ephemeral=True)
+        await interaction.response.send_message("MBot: Я не подключён к голосовому каналу. Используйте /join, чтобы подключиться.", ephemeral=True)
         return
 
     ydl_opts = {
@@ -273,24 +273,24 @@ async def play_other(interaction: nextcord.Interaction, url: str):
                 audio_url = info['url']
             voice_channel.stop()
             voice_channel.play(nextcord.FFmpegPCMAudio(audio_url), after=lambda e: print('Done', e))
-        await interaction.response.send_message("AIM: Воспроизведение видео началось.", ephemeral=True)
+        await interaction.response.send_message("MBot: Воспроизведение видео началось.", ephemeral=True)
     except Exception as e:
-        await interaction.response.send_message(f"AIM: Возникла ошибка при воспроизведении - {str(e)}", ephemeral=True)
+        await interaction.response.send_message(f"MBot: Возникла ошибка при воспроизведении - {str(e)}", ephemeral=True)
 
 @bot.slash_command(name="stop", description="Остановить текущее воспроизведение")
 async def stop(interaction: nextcord.Interaction):
     voice_channel = nextcord.utils.get(bot.voice_clients, guild=interaction.guild)
 
     if not voice_channel:
-        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу.", ephemeral=True)
+        await interaction.response.send_message("Mbot: Я не подключён к голосовому каналу.", ephemeral=True)
         return
 
     if not voice_channel.is_playing():
-        await interaction.response.send_message("AIM: В данный момент ничего не воспроизводится.", ephemeral=True)
+        await interaction.response.send_message("MBot: В данный момент ничего не воспроизводится.", ephemeral=True)
         return
 
     voice_channel.stop()
-    await interaction.response.send_message("AIM: Воспроизведение остановлено.", ephemeral=True)
+    await interaction.response.send_message("MBot: Воспроизведение остановлено.", ephemeral=True)
     await log_event("Воспроизведение было остановлено.")
 
 @bot.slash_command(name="leave", description="Отключить бота от голосового канала")
@@ -298,23 +298,23 @@ async def leave(interaction: nextcord.Interaction):
     voice_client = interaction.guild.voice_client
     if voice_client is not None:
         await voice_client.disconnect()
-        await interaction.response.send_message("AIM: Отключился от голосового канала.", ephemeral=True)
+        await interaction.response.send_message("MBot: Отключился от голосового канала.", ephemeral=True)
         await log_event(f"Бот отключился от голосового канала {voice_client.channel}.")
     else:
-        await interaction.response.send_message("AIM: Я не подключён к голосовому каналу.", ephemeral=True)
+        await interaction.response.send_message("MBot: Я не подключён к голосовому каналу.", ephemeral=True)
 
 @bot.slash_command(name="thx", description="Сказать спасибо боту")
 async def thx(interaction: nextcord.Interaction):
-    await interaction.response.send_message("AIM: Рад был помочь! :)", ephemeral=True)
+    await interaction.response.send_message("MBot: Рад был помочь! :)", ephemeral=True)
 
 @bot.slash_command(name="del_messages", description="Удалить последние сообщения")
 async def del_messages(interaction: nextcord.Interaction, amount: int):
     if amount < 1 or amount > 100:
-        await interaction.response.send_message("AIM: Укажите количество сообщений от 1 до 100.", ephemeral=True)
+        await interaction.response.send_message("MBot: Укажите количество сообщений от 1 до 100.", ephemeral=True)
         return
 
     await interaction.channel.purge(limit=amount)
-    await interaction.response.send_message(f"AIM: Удалил {amount} сообщений.", ephemeral=True)
+    await interaction.response.send_message(f"MBot: Удалил {amount} сообщений.", ephemeral=True)
     await log_event(f"Удалено {amount} сообщений пользователем {interaction.user}.")
 
 @bot.slash_command(name="h", description="Показать доступные команды")
@@ -345,4 +345,5 @@ async def h(interaction: nextcord.Interaction):
     """
     await interaction.response.send_message(help_message, ephemeral=True)
 
-bot.run('YOUR_BOT_TOKEN_HERE')  # Убедитесь, что заменили 'YOUR_BOT_TOKEN_HERE' на ваш токен бота
+bot.run('token')
+
