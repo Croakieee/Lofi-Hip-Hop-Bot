@@ -1,1 +1,25 @@
 ERROR: [youtube] rUxyKA_-grg: This live stream recording is not available.
+-----------------------------------
+Ignoring exception in command <nextcord.application_command.SlashApplicationCommand object at 0x7f1f90b7a0d0>:
+Traceback (most recent call last):
+  File "Lofi-Hip-Hop-Bot-24-7.py", line 276, in play_other
+    await interaction.response.send_message("MBot: Воспроизведение видео началось.", ephemeral=True)
+  File "/home/nina/.local/lib/python3.8/site-packages/nextcord/interactions.py", line 896, in send_message
+    await adapter.create_interaction_response(
+  File "/home/nina/.local/lib/python3.8/site-packages/nextcord/webhook/async_.py", line 195, in request
+    raise NotFound(response, data)
+nextcord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/nina/.local/lib/python3.8/site-packages/nextcord/application_command.py", line 918, in invoke_callback_with_hooks
+    await self(interaction, *args, **kwargs)
+  File "Lofi-Hip-Hop-Bot-24-7.py", line 278, in play_other
+    await interaction.response.send_message(f"MBot: Возникла ошибка при воспроизведении - {str(e)}", ephemeral=True)
+  File "/home/nina/.local/lib/python3.8/site-packages/nextcord/interactions.py", line 896, in send_message
+    await adapter.create_interaction_response(
+  File "/home/nina/.local/lib/python3.8/site-packages/nextcord/webhook/async_.py", line 195, in request
+    raise NotFound(response, data)
+nextcord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+-----------------------------------------------------------
