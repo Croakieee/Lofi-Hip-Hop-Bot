@@ -27,7 +27,7 @@ async def delete_message_after_delay(message, delay=30):
 
 async def log_event(message):
     log_channel_name = "логи-🌐"  # Название канала для логов
-    guild = bot.get_guild(id)  # Замените на ID вашего сервера
+    guild = bot.get_guild(1284971289261379664)  # Замените на ID вашего сервера
     if guild:
         log_channel = nextcord.utils.get(guild.text_channels, name=log_channel_name)
         if log_channel:
@@ -346,4 +346,5 @@ async def h(interaction: nextcord.Interaction):
     await interaction.response.send_message(help_message, ephemeral=True)
 
 bot.run('token')
+
 
