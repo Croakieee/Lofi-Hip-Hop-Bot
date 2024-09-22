@@ -23,3 +23,4 @@ Traceback (most recent call last):
     raise NotFound(response, data)
 nextcord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
 -----------------------------------------------------------
+#ошибка в слеш комит при ответе бота слеш команды из за задержки прозведения
