@@ -8,7 +8,7 @@ Traceback (most recent call last):
     await adapter.create_interaction_response(
   File "/home/nina/.local/lib/python3.8/site-packages/nextcord/webhook/async_.py", line 195, in request
     raise NotFound(response, data)
-nextcord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+nextcord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction   # + 405-Error
 
 During handling of the above exception, another exception occurred:
 
